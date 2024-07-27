@@ -1,0 +1,71 @@
+<html>
+<head>
+    <title>eXPRS Monitor</title>
+    <script crossorigin="anonymous"
+            integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/"
+            src="https://unpkg.com/htmx.org@2.0.1"></script>
+    <script src="https://unpkg.com/htmx-ext-ws@2.0.0/ws.js"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+<div hx-ext="ws" hx-target="systemperformance" ws-connect="/systemLoad">
+
+</div>
+<div id="systemperformance"></div>
+<span _="on load repeat forever
+fetch '/api/remoteendpoint/check?host=www.google.com&port=80' then
+if result is 200 add .active
+else
+remove .active
+end
+wait 60s
+end" class="inactive">Example - Socket check</span>
+
+<span _="on load repeat forever
+fetch '/api/remoteendpoint/check?url=https://www.google.com' then
+if result is 200 add .active
+else
+remove .active
+end
+wait 60s
+end" class="inactive">Example - URL check</span>
+
+
+<details>
+    <summary>Host Test</summary>
+    Use to query a host name and port, or a url.
+    <form method="GET">
+        <label>Host<input name="host"/></label>:<label>Port<input name="port"/></label>
+        <button hx-get="/api/remoteendpoint/check" hx-include="[name='host'],[name='port']">Test</button>
+        <br>
+        <label>URL<input name="url"/></label>
+        <button hx-get="/api/remoteendpoint/check" hx-include="[name='url']">Test</button>
+    </form>
+</details>
+
+<!-- duplicate this block for as many keys you enter into the tailedFiles.properties
+		change the id on the div to match the key! -->
+<details>
+    <summary>Local Logs</summary>
+    <div hx-ext="ws" ws-connect="/logtailer/local"></div>
+    <div class="log-div-container" id="logContent-local">
+        <pre class="log"></pre>
+    </div>
+</details>
+
+<script>
+    // keep all logs at the bottom
+    document.addEventListener("htmx:wsAfterMessage", e => {
+      const messagesDiv = Array.from(document.getElementsByClassName("log"));
+      messagesDiv.forEach((item) => {
+          item.scrollTop = item.scrollHeight;
+      })
+
+    })
+
+
+</script>
+
+</body>
+</html>

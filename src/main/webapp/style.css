@@ -1,0 +1,39 @@
+div.log-div-container {
+  resize:both;
+  overflow:auto; /* something other than visible */
+  width:90%;
+  padding:auto;
+  height:200px;
+  border: 1px solid black;
+}
+pre.log:nth-child(even) {
+
+    padding:0px;
+    margin:0px;
+  }
+
+pre.log:nth-child(odd) {
+    background-color: #e0e0e0;
+
+    padding:0px;
+    margin:0px;
+  }
+  .log.tab{
+    background-color:red !important;
+    color: yellow !important;
+  }
+
+  .inactive{
+  background-color:red;
+  color: yellow;
+  }
+
+  .active  {
+    background-color: green !important;
+    color:yellow !important;
+  }
+
+  details{
+  margin:3px;
+  border:1px solid gray;
+  }
