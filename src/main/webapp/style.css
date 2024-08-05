@@ -18,7 +18,7 @@ pre.log:nth-child(odd) {
     padding:0px;
     margin:0px;
   }
-  .log.tab{
+  .log.error{
     background-color:red !important;
     color: yellow !important;
   }
@@ -37,3 +37,12 @@ pre.log:nth-child(odd) {
   margin:3px;
   border:1px solid gray;
   }
+
+  span.unread {
+              font-weight: bold;
+
+          }
+   span.unread-error {
+                 font-weight: bold;
+                color:red;
+             }

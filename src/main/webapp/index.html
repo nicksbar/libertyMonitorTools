@@ -9,32 +9,105 @@
     <link href="style.css" rel="stylesheet">
 </head>
 <body>
-<div hx-ext="ws" hx-target="systemperformance" ws-connect="/systemLoad">
+<div hx-ext="ws" hx-target="systemperformance" ws-connect="/telemetry">
 
+    <!-- endpoint url supported protocols - http/https/ftp/sftp -->
 </div>
 <div id="systemperformance"></div>
 <span _="on load repeat forever
-fetch '/api/remoteendpoint/check?host=www.google.com&port=80' then
-if result is 200 add .active
+fetch '/api/remoteendpoint/check?host=198.132.53.13&port=38021' then
+if result is 200
+    add .active
+    set @title to 'Fetch successful: ' + result
 else
-remove .active
+    remove .active
+    set @title to 'Fetch failed: ' + result
 end
-wait 60s
-end" class="inactive">Example - Socket check</span>
-
-<span _="on load repeat forever
-fetch '/api/remoteendpoint/check?url=https://www.google.com' then
-if result is 200 add .active
-else
-remove .active
-end
-wait 60s
-end" class="inactive">Example - URL check</span>
+wait 1800s
+end" class="inactive" title="">MMIS - default</span>
 
 
 <details>
+    <summary>Controls & Settings</summary>
+    <label><input checked id="log-scroll-lock" type="checkbox"/>Auto Log Scrolling</label><br>
+
+    <h1>Monitor Checkbox List</h1>
+    <div hx-get="/api/remoteendpoint/getlist" hx-target="#remote-checkbox-list" hx-trigger="load"></div>
+    <div id="remote-checkbox-list"
+         _="on htmx:afterOnLoad
+             set my innerHTML to renderCheckboxList(JSON.parse(this.innerText))
+            then call htmx.process(document)">
+
+        <!-- Hyperscript function to render the checkbox list -->
+        <script type="text/hyperscript">
+            def renderCheckboxList(data)
+                let html = "<form>"
+                log console data
+                for each key category in data
+                    html += `<h2>${category}</h2>`
+                    for each key property in data[category]
+                        let value = data[category][property]
+                        html += `
+                            <label>
+                                <input type="checkbox" name="${property}" value="${value}"/>
+                                ${property}: ${value}
+                            </label>
+                            <br/>`
+                    end
+                end
+                html += "</form>"
+                return html
+            end
+        </script>
+    </div>
+</details>
+
+<details>
+    <summary>LDAP Auth</summary>
+    Authenticate! Not working...
+    <form hx-post="/api/authenticate" hx-target="#ldapresult" id="loginForm">
+        <input name="username" placeholder="Username" required type="text">
+        <input name="password" placeholder="Password" required type="password">
+        <div id="ldapresult"></div>
+        <button disabled="disabled" type="submit">Login</button>
+    </form>
+</details>
+<details>
+    <summary>Commands</summary>
+    Pick a command from the list, add any parameters, execute.
+    <form id="commandForm">
+        <label for="command">Command:</label>
+        <select hx-get="/api/commands/form" hx-target="#params" hx-trigger="change" id="command" name="command">
+            <option></option>
+            <!-- Options will be dynamically generated from the properties file -->
+        </select><br>
+        <div id="params"></div>
+        <input hx-post="/api/commands/execute" hx-swap="innerHTML" hx-target="#result" type="submit" value="Execute">
+    </form>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            htmx.ajax('GET', '/api/commands', {target: '#commandForm', swap: 'outerHTML'});
+        });
+    </script>
+</details>
+<details>
+    <summary>Emulator</summary>
+    Store a key and value, then request it by the key. Access at api/emulator/{key}
+    <form method="POST">
+        <label>Key: <br><input name="key" type="text"/></label><br>
+        <label>Value:<br>
+            <textarea name="data"></textarea></label><br>
+        <button hx-include="[name='key'],[name='data']" hx-post="/api/emulator/submit">Emulate</button>
+
+    </form>
+</details>
+
+<details>
     <summary>Host Test</summary>
-    Use to query a host name and port, or a url.
+    Use to query a host name and port, or a url. The URL supports http/https/ftp/sftp protocols and will use the
+    standard ports if omitted.
     <form method="GET">
         <label>Host<input name="host"/></label>:<label>Port<input name="port"/></label>
         <button hx-get="/api/remoteendpoint/check" hx-include="[name='host'],[name='port']">Test</button>
@@ -44,28 +117,82 @@ end" class="inactive">Example - URL check</span>
     </form>
 </details>
 
-<!-- duplicate this block for as many keys you enter into the tailedFiles.properties
-		change the id on the div to match the key! -->
 <details>
-    <summary>Local Logs</summary>
+    <summary>Local Logs <a href="/api/log/local">&#x1f4e5;&#xfe0e</a>
+        <span class="unread"></span>
+    </summary>
     <div hx-ext="ws" ws-connect="/logtailer/local"></div>
     <div class="log-div-container" id="logContent-local">
         <pre class="log"></pre>
     </div>
 </details>
 
+<details>
+    <summary>UAT Console Logs <a href="/api/log/wlp-uat-console">&#x1f4e5;&#xfe0e</a> <span class="unread"></span> <span
+            class="unread-error"></span>
+    </summary>
+    <div hx-ext="ws" ws-connect="/logtailer/wlp-uat-console"></div>
+    <div class="log-div-container" id="logContent-wlp-uat-console"></div>
+</details>
+
 <script>
-    // keep all logs at the bottom
     document.addEventListener("htmx:wsAfterMessage", e => {
-      const messagesDiv = Array.from(document.getElementsByClassName("log"));
-      messagesDiv.forEach((item) => {
-          item.scrollTop = item.scrollHeight;
-      })
+        if(!document.querySelector("#log-scroll-lock").checked)
+            return;
+          const messagesDiv = Array.from(document.getElementsByClassName("log-div-container"));
+          messagesDiv.forEach((item) => {
+              item.scrollTop = item.scrollHeight;
+          })
 
-    })
+    });
 
+    document.addEventListener('DOMContentLoaded', function() {
+            var detailsElements = document.querySelectorAll('details');
+            detailsElements.forEach(function(detailsElement) {
+                var newItemsCount = 0;
+                var newItemsCountErr = 0;
 
+                detailsElement.addEventListener('toggle', function(event) {
+                    var wsDiv = detailsElement.querySelector('div[ws-connect]');
+                    var logContainer = detailsElement.querySelector('.log-div-container');
+
+                    if (detailsElement.open) {
+                        if (wsDiv && !wsDiv.classList.contains('connected')) {
+                            htmx.trigger(wsDiv, 'details:toggle');
+                            wsDiv.classList.add('connected');
+                        }
+                        newItemsCount = 0;
+                        newItemsCountErr = 0;
+
+                    }
+                });
+
+                var wsDiv = detailsElement.querySelector('div[ws-connect]');
+                if (wsDiv) {
+                    wsDiv.addEventListener('htmx:wsAfterMessage', function(evt) {
+                    var isErrorMsg = evt.detail.message.indexOf(' error"'); // should be better, its looking for a class
+                     var summaryElement = detailsElement.querySelector('summary span.unread');
+                     var summaryElementError = detailsElement.querySelector('summary span.unread-error');
+                        if (!detailsElement.open) {
+                            if (summaryElement && isErrorMsg == -1) {
+                                newItemsCount += 1;
+                                summaryElement.textContent = `(${newItemsCount})`;
+                            }else if(summaryElementError && isErrorMsg > -1){
+                                newItemsCountErr += 1;
+                                summaryElementError.textContent = `(${newItemsCount})`;
+                            }
+                        }else{
+                             newItemsCount = 0;
+                             newItemsCountErr = 0;
+                             summaryElement.textContent = `(${newItemsCount})`;
+                             summaryElementError.textContent = `(${newItemsCount})`;
+                        }
+                    });
+                }
+            });
+        });
 </script>
+
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-package com.github.nicksbar.libertyMonitorTools.EndPoints.tailer;
+package com.github.nickbar.LibertyUatTools.Endpoints.FileTailer;
 
 import jakarta.websocket.Session;
 import org.apache.commons.io.input.Tailer;
@@ -45,7 +45,7 @@ public class LogFileTailer extends TailerListenerAdapter {
         for (Session session : sessions) {
             // a tab class is added so the UX can make the display better
             String htmlContent = "<div hx-swap-oob=\"beforeend:#logContent-" + logName + "\">"
-                    + "<pre class=\"log " + (line.startsWith("\t") ? "tab" : "no-tab") + "\">" + line + "</pre>"
+                    + "<pre class=\"log " + ((line.startsWith("\t") || line.startsWith("[err") || line.startsWith("ERROR ")) ? "error" : "no-error") + "\">" + line + "</pre>"
                     + "</div>";
             session.getAsyncRemote().sendText(htmlContent);
         }

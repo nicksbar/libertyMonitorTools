@@ -1,4 +1,4 @@
-package com.github.nicksbar.libertyMonitorTools.Util;
+package com.github.nickbar.LibertyUatTools.Util;
 
 
 import jakarta.enterprise.context.RequestScoped;

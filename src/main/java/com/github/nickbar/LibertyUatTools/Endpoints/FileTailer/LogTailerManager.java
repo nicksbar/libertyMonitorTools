@@ -1,4 +1,4 @@
-package com.github.nicksbar.libertyMonitorTools.EndPoints.tailer;
+package com.github.nickbar.LibertyUatTools.Endpoints.FileTailer;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;

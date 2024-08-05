@@ -1,7 +1,7 @@
-package com.github.nicksbar.libertyMonitorTools.EndPoints.tailer;
+package com.github.nickbar.LibertyUatTools.Endpoints.FileTailer;
 
 
-import com.github.nicksbar.libertyMonitorTools.Util.CDIRequestScopeActivator;
+import com.github.nickbar.LibertyUatTools.Util.CDIRequestScopeActivator;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;

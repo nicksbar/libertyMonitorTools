@@ -6,21 +6,22 @@
     </featureManager>
 
     <basicRegistry id="defaultBasicRegistry" realm="BasicRealm">
-        <user name="username" password="password" />
+        <user name="username" password="password"/>
     </basicRegistry>
 
-    <keyStore id="defaultKeyStore" password="password" />
+    <keyStore id="defaultKeyStore" password="password"/>
 
-    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9447" httpsPort="-1" />
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="${http.port}" httpsPort="${https.port}"/>
 
-    <webApplication location="exprsMonitor.war" contextRoot="/" />
-    <applicationManager autoExpand="true" />
+    <webApplication location="liberty-uat-tools.war" contextRoot="${app.context.root}"/>
 
-    <cors id="defaultCORSConfig"
-          domain="/"
-          allowedOrigins="*"
-          allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
-          allowedHeaders="Origin, Content-Type, Authorization, Cache-Control, Expires, Pragma"
-          allowCredentials="true"
-          maxAge="3600" />
+    <applicationManager autoExpand="true"/>
+
+    <cors
+            domain="/"
+            allowedOrigins="*"
+            allowedMethods="GET, POST, PUT, DELETE, OPTIONS"
+            allowedHeaders="Origin, Content-Type, Authorization, Cache-Control, Expires, Pragma"
+            allowCredentials="true"
+            maxAge="3600"/>
 </server>
